@@ -711,7 +711,7 @@ async function saveAll(){
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`,{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-Access-Key':JSONBIN_KEY,'X-Bin-Meta':'false'},
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'},
       body:JSON.stringify({games,pending})
     });
     if(!r.ok)throw new Error('HTTP '+r.status);
@@ -724,7 +724,7 @@ async function loadAll(){
   setSyncUI('syncing','Sincronizando...');
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-      headers:{'X-Access-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
+      headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
     });
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();
@@ -743,7 +743,7 @@ function startPolling(){
   pollTimer=setInterval(async()=>{
     try{
       const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-        headers:{'X-Access-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
+        headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
       });
       if(!r.ok)return;
       const d=await r.json();
