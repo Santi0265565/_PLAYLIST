@@ -711,28 +711,32 @@ async function saveAll(){
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`,{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'},
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
       body:JSON.stringify({games,pending})
     });
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t)}
     lastHash=hashStr({games,pending});
     setSyncUI('ok','Guardado · '+timeNow());
-  }catch(e){setSyncUI('err','Error al guardar')}
+  }catch(e){console.error('saveAll',e);setSyncUI('err','Error al guardar: '+e.message)}
 }
 
 async function loadAll(){
   setSyncUI('syncing','Sincronizando...');
   try{
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-      headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
+      headers:{'X-Master-Key':JSONBIN_KEY}
     });
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    games=d.games||[];
-    pending=d.pending||[];
+    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t)}
+    const wrapper=await r.json();
+    // JSONBin wraps response: {record:{...}, metadata:{...}}
+    // With X-Bin-Meta:false it returns the record directly
+    // But sometimes it still wraps — handle both cases
+    const d=wrapper.record||wrapper;
+    games=Array.isArray(d)?[]:(d.games||[]);
+    pending=Array.isArray(d)?[]:(d.pending||[]);
     lastHash=hashStr({games,pending});
     setSyncUI('ok','Sincronizado · '+timeNow());
-  }catch(e){setSyncUI('err','Sin conexión — verifica tu Bin ID y Access Key');games=[];pending=[]}
+  }catch(e){console.error('loadAll',e);setSyncUI('err','Error: '+e.message);games=[];pending=[]}
   render();
 }
 
@@ -743,13 +747,15 @@ function startPolling(){
   pollTimer=setInterval(async()=>{
     try{
       const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-        headers:{'X-Master-Key':JSONBIN_KEY,'X-Bin-Meta':'false'}
+        headers:{'X-Master-Key':JSONBIN_KEY}
       });
       if(!r.ok)return;
-      const d=await r.json();
-      const h=hashStr(d);
+      const wrapper=await r.json();
+      const d=wrapper.record||wrapper;
+      const data={games:Array.isArray(d)?[]:(d.games||[]),pending:Array.isArray(d)?[]:(d.pending||[])};
+      const h=hashStr(data);
       if(h!==lastHash){
-        games=d.games||[];pending=d.pending||[];
+        games=data.games;pending=data.pending;
         lastHash=h;
         setSyncUI('ok','Actualizado · '+timeNow());
         render();
