@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>PLAYLIST — Game Tracker</title>
+<title>SAVE POINT — Game Tracker</title>
+<meta name="theme-color" content="#0f0f0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SAVE POINT"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
@@ -196,7 +200,7 @@ select option{background:#1c1c1c}
 .star-display{display:flex;gap:2px}
 .star-icon{font-size:1.15rem;transition:color 0.12s;color:var(--muted)}
 .star-icon.on{color:var(--gold)}
-.star-icon.half-on{color:var(--gold-dim)}
+.star-icon.half-on{color:transparent;background:linear-gradient(90deg,var(--gold) 50%,var(--muted) 50%);-webkit-background-clip:text;background-clip:text}
 .star-step-btns{display:flex;gap:3px}
 .sstep{
   width:26px;height:26px;border-radius:5px;
@@ -377,6 +381,9 @@ select option{background:#1c1c1c}
 .sync-txt{flex:1;letter-spacing:.04em}
 .sync-btn{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.07em;padding:.22rem .6rem;border-radius:5px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:transparent;transition:all .18s}
 .sync-btn:hover{color:var(--text);border-color:var(--border2)}
+.sync-btn .sync-icon{display:inline-block;transition:transform 0.3s}
+.sync-btn.spinning .sync-icon{animation:spin .7s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* REC TOGGLE IN FORM */
 .rec-row{display:flex;gap:.45rem;margin-bottom:.6rem}
@@ -422,12 +429,320 @@ select option{background:#1c1c1c}
 .acc-name{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acc-meta{font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-top:2px}
 
-@media(max-width:600px){
-  .stats{grid-template-columns:repeat(2,1fr)}
+
+
+/* ── V2 UX: search, status, priority, cover art ───────────────── */
+.discovery-panel{background:var(--s1);border:1px solid var(--border);border-radius:var(--radlg);padding:.9rem;margin-bottom:1rem;display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:.55rem}
+.search-input{font-family:var(--font)}
+.status-row,.priority-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.6rem}
+.statusbtn,.prioritybtn{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-family:var(--mono);font-size:.58rem;padding:.48rem;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.statusbtn.active,.prioritybtn.active{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
+.game-cover{width:42px;height:56px;border-radius:7px;background:linear-gradient(145deg,var(--s3),var(--stone-dk));border:1px solid var(--border2);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.55rem;color:var(--gold);letter-spacing:.04em;text-align:center;padding:4px;overflow:hidden}
+.game-cover img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px}
+.status-chip{font-family:var(--mono);font-size:.52rem;border-radius:4px;padding:1px 6px;letter-spacing:.04em;background:var(--s3);color:var(--stone-lt);text-transform:uppercase}
+.status-chip.playing{color:#84c7ff;background:rgba(44,95,138,.22)}
+.status-chip.finished,.status-chip.completed{color:var(--gold);background:var(--gold-bg)}
+.status-chip.pending{color:var(--muted2);background:var(--s3)}
+.status-chip.dropped{color:#d97c6f;background:rgba(192,57,43,.12)}
+.status-chip.replaying{color:#9fcaa9;background:rgba(74,124,89,.18)}
+.priority-chip{font-family:var(--mono);font-size:.52rem;border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:var(--muted2);letter-spacing:.04em;text-transform:uppercase}
+.priority-chip.high{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
+.mini-meta{font-family:var(--mono);font-size:.54rem;color:var(--muted);margin-top:2px}
+.game-check.pending::after{content:'○'}
+.game-check.playing::after{content:'▶';font-size:.5rem}
+.game-check.finished::after{content:'✓'}
+.game-check.completed::after{content:'◆';font-size:.5rem}
+.game-check.dropped::after{content:'×'}
+.game-check.replaying::after{content:'↻'}
+.game-check.finished,.game-check.completed{background:var(--c);border-color:var(--c);color:#fff;font-weight:700}
+.game-check.playing{border-color:var(--c);color:var(--c);background:rgba(255,255,255,.03)}
+.game-check.dropped{border-color:var(--switch);color:var(--switch)}
+.game-check.replaying{border-color:var(--xbox);color:var(--xbox)}
+.security-note{font-family:var(--mono);font-size:.55rem;color:var(--muted);line-height:1.5;margin-top:.55rem}
+@media(max-width:768px){.discovery-panel{grid-template-columns:1fr 1fr}.discovery-panel>:first-child{grid-column:span 2}}
+@media(max-width:600px){.discovery-panel{grid-template-columns:1fr;padding:.75rem}.discovery-panel>:first-child{grid-column:span 1}.status-row,.priority-row{flex-direction:column}.game-cover{width:36px;height:48px}.statusbtn,.prioritybtn{padding:.62rem}.game-main{align-items:flex-start}}
+
+
+/* ── FAVORITES 3D CAROUSEL ───────────────────────── */
+.fav-section{
+  background:linear-gradient(180deg,rgba(212,168,67,.06),rgba(255,255,255,.015));
+  border:1px solid var(--border);
+  border-radius:var(--radlg);
+  margin:-.65rem 0 1.75rem;
+  padding:1rem 1rem 1.1rem;
+  overflow:hidden;
+  position:relative;
+}
+.fav-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(212,168,67,.12),transparent 42%);pointer-events:none}
+.fav-head{display:flex;align-items:center;gap:.75rem;position:relative;z-index:1;margin-bottom:.8rem}
+.fav-title{font-family:var(--mono);font-size:.67rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);flex:1}
+.fav-subtitle{font-family:var(--mono);font-size:.55rem;color:var(--muted);letter-spacing:.06em}
+.fav-controls{display:flex;gap:.35rem}
+.fav-nav{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);background:var(--s2);color:var(--stone-lt);cursor:pointer;transition:all .18s;font-family:var(--mono)}
+.fav-nav:hover{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg);transform:translateY(-1px)}
+.fav-stage{perspective:1000px;position:relative;z-index:1}
+.fav-track{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;padding:.4rem .2rem 1.45rem;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab}
+.fav-track:active{cursor:grabbing}
+.fav-track::-webkit-scrollbar{display:none}
+.fav-card{min-width:178px;max-width:178px;height:252px;scroll-snap-align:center;border-radius:16px;background:var(--s2);border:1px solid var(--border2);position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;box-shadow:0 14px 34px rgba(0,0,0,.33)}
+.fav-card:hover{transform:translateY(-8px) rotateX(7deg) rotateY(-8deg) scale(1.035);box-shadow:0 24px 52px rgba(0,0,0,.55)}
+.fav-card.tier-gold{border:2px solid #d4a843;box-shadow:0 0 0 1px rgba(212,168,67,.2),0 14px 38px rgba(212,168,67,.16),0 18px 42px rgba(0,0,0,.45)}
+.fav-card.tier-silver{border:2px solid #bfc1c2;box-shadow:0 0 0 1px rgba(220,220,220,.13),0 14px 38px rgba(190,190,190,.12),0 18px 42px rgba(0,0,0,.45)}
+.fav-card.tier-bronze{border:2px solid #a76b38;box-shadow:0 0 0 1px rgba(167,107,56,.12),0 14px 38px rgba(167,107,56,.12),0 18px 42px rgba(0,0,0,.45)}
+.fav-poster{position:absolute;inset:0;background:linear-gradient(145deg,var(--stone-dk),var(--s3));display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;font-weight:800;letter-spacing:-.03em;color:var(--stone-lt)}
+.fav-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fav-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02) 25%,rgba(0,0,0,.45) 58%,rgba(0,0,0,.92) 100%)}
+.fav-badge{position:absolute;top:.65rem;left:.65rem;font-family:var(--mono);font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:#0f0f0f;background:var(--gold);border-radius:999px;padding:.18rem .5rem;font-weight:700}
+.fav-unstar{position:absolute;top:.55rem;right:.55rem;width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.45);color:var(--gold);cursor:pointer;backdrop-filter:blur(8px);transition:all .18s}
+.fav-unstar:hover{transform:scale(1.08);background:rgba(212,168,67,.18)}
+.fav-info{position:absolute;left:.75rem;right:.75rem;bottom:.72rem;z-index:2}
+.fav-name{font-size:.95rem;font-weight:800;line-height:1.05;text-shadow:0 2px 10px rgba(0,0,0,.85);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fav-meta{font-family:var(--mono);font-size:.52rem;color:var(--stone-lt);margin-top:.35rem;line-height:1.35}
+.fav-stars{display:flex;justify-content:flex-start;gap:.12rem;color:var(--gold);font-size:.78rem;text-shadow:0 0 10px rgba(212,168,67,.65);animation:floatStars 2.4s ease-in-out infinite;pointer-events:none;margin-top:.38rem}.fav-stars .half-star{color:transparent;background:linear-gradient(90deg,var(--gold) 50%,rgba(232,224,208,.28) 50%);-webkit-background-clip:text;background-clip:text}.fav-stars .empty-star{color:rgba(232,224,208,.22);text-shadow:none}
+@keyframes floatStars{0%,100%{transform:translateY(0);opacity:.78}50%{transform:translateY(-5px);opacity:1}}
+.fav-empty{font-family:var(--mono);font-size:.62rem;color:var(--muted);border:1px dashed var(--border2);border-radius:12px;padding:1.2rem;text-align:center;position:relative;z-index:1}
+.favoritebtn{background:var(--s2);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-family:var(--mono);font-size:.62rem;padding:.52rem;cursor:pointer;transition:all .2s;text-align:center;letter-spacing:.06em;text-transform:uppercase}
+.favoritebtn.active{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-bg)}
+.icon-btn.fav-btn.active{color:var(--gold);background:var(--gold-bg)}
+@media(max-width:600px){.fav-section{margin-top:-.35rem;padding:.85rem}.fav-card{min-width:150px;max-width:150px;height:218px}.fav-track{gap:.75rem}.fav-subtitle{display:none}}
+
+/* ── MOBILE PROFILE HEADER (sticky below navbar) ────────*/
+.mobile-profile-bar{
+  display:none;
+  position:sticky;top:50px;z-index:40;
+  background:rgba(15,15,15,0.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  padding:0.45rem 1rem;
+  flex-direction:row;align-items:center;gap:0.6rem;
+}
+.mpb-avatar{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:0.5rem;font-weight:700;flex-shrink:0;
+}
+.mpb-avatar.santi{background:rgba(212,168,67,0.18);color:var(--gold)}
+.mpb-avatar.espi{background:rgba(44,95,138,0.25);color:#6aaddc}
+.mpb-name{font-family:var(--mono);font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);flex:1}
+.mpb-tab{font-family:var(--mono);font-size:0.52rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;background:var(--gold-bg);border:1px solid var(--gold-dim);border-radius:10px;padding:1px 8px}
+.pwa-toast{
+  position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s2);border:1px solid var(--border2);border-radius:10px;
+  padding:0.75rem 1.1rem;display:flex;align-items:center;gap:0.7rem;
+  font-family:var(--mono);font-size:0.62rem;color:var(--stone-lt);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:200;
+  opacity:0;pointer-events:none;transition:all 0.35s ease;white-space:nowrap;
+}
+.pwa-toast.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.pwa-toast-icon{font-size:1rem}
+.pwa-install-btn{
+  background:var(--gold);color:#0f0f0f;border:none;border-radius:6px;
+  font-family:var(--mono);font-size:0.6rem;font-weight:700;
+  padding:0.3rem 0.7rem;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;
+}
+.pwa-dismiss{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 2px}
+
+/* ── FAB (mobile add button) ────────────*/
+.fab{
+  display:none;
+  position:fixed;bottom:1.5rem;right:1.25rem;z-index:80;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--gold);color:#0f0f0f;border:none;
+  font-size:1.4rem;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 20px rgba(212,168,67,0.45);
+  align-items:center;justify-content:center;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.fab:active{transform:scale(0.93)}
+
+/* ── MOBILE BOTTOM NAV ───────────────────*/
+.bottom-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:rgba(15,15,15,0.96);
+  border-top:1px solid var(--border2);
+  backdrop-filter:blur(16px);
+  padding:0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom));
+}
+.bottom-nav-inner{display:flex;justify-content:space-around}
+.bnav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:none;border:none;color:var(--muted);font-family:var(--mono);
+  font-size:0.48rem;letter-spacing:0.07em;text-transform:uppercase;
+  padding:0.3rem 0.5rem;cursor:pointer;transition:color 0.2s;
+  position:relative;min-width:56px;
+}
+.bnav-btn.active{color:var(--gold)}
+.bnav-icon{font-size:1.1rem;line-height:1}
+.bnav-dot{
+  position:absolute;top:4px;right:10px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--bg);
+  display:none;
+}
+.bnav-dot.show{display:block}
+
+
+/* ── DEDICATED ADD TAB ───────────────────── */
+.add-section.tabbed{display:none;margin-bottom:1.75rem}
+.add-section.tabbed.open{display:block}
+.add-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.1rem;padding-bottom:.85rem;border-bottom:1px solid var(--border)}
+.add-intro-title{font-size:1.15rem;font-weight:800;letter-spacing:-.03em}
+.add-intro-copy{font-family:var(--mono);font-size:.58rem;color:var(--muted2);line-height:1.55;margin-top:.28rem;max-width:440px}
+.add-back{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--border);background:transparent;color:var(--muted2);border-radius:999px;padding:.38rem .75rem;cursor:pointer;white-space:nowrap;transition:all .18s}
+.add-back:hover{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-bg)}
+.main-only.hidden{display:none!important}
+@media(max-width:600px){.add-intro{align-items:flex-start;flex-direction:column}.add-section.tabbed{margin-top:.25rem}.form-toggle-btn{display:none!important}}
+
+/* ── ADD FORM COLLAPSIBLE (mobile) ──────*/
+.form-toggle-btn{
+  display:none;width:100%;background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radlg);padding:0.85rem 1.1rem;
+  color:var(--muted2);font-family:var(--mono);font-size:0.65rem;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;
+  text-align:left;transition:all 0.2s;margin-bottom:1.75rem;
+}
+.form-toggle-btn:hover{border-color:var(--border2);color:var(--text)}
+.form-toggle-btn .ftb-arrow{float:right;transition:transform 0.25s}
+.form-toggle-btn.open .ftb-arrow{transform:rotate(180deg)}
+.add-section.collapsed{display:none}
+
+/* ── SWIPE HINT ─────────────────────────*/
+.swipe-hint{
+  display:none;text-align:center;
+  font-family:var(--mono);font-size:0.53rem;color:var(--muted);
+  letter-spacing:0.08em;padding:0.3rem 0;margin-bottom:0.5rem;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — TABLET (≤768px)
+═══════════════════════════════════════*/
+@media(max-width:768px){
   .fg-3{grid-template-columns:1fr 1fr}
   .fg-3>:first-child{grid-column:span 2}
-  .navbar{padding:0 1rem}
-  .nav-logo{margin-right:0.75rem}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — MOBILE (≤600px)
+═══════════════════════════════════════*/
+@media(max-width:600px){
+
+  /* ── NAVBAR: two-row layout ── */
+  .navbar{
+    padding:0;height:auto;
+    flex-direction:column;align-items:stretch;gap:0;
+    justify-content:flex-start;
+  }
+  .navbar-row1{
+    display:flex;align-items:center;
+    padding:0 1rem;height:44px;
+    border-bottom:1px solid var(--border);
+  }
+  .navbar-row2{
+    display:flex;align-items:center;
+    padding:0 0.75rem;height:36px;gap:0.3rem;overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .navbar-row2::-webkit-scrollbar{display:none}
+  .nav-sep{display:none}
+  .nav-right{display:none}
+  .nav-users{flex:1;gap:0.15rem;justify-content:flex-start}
+  .nav-logo{font-size:0.85rem;margin-right:0.75rem;flex-shrink:0}
+  .nav-user{padding:0.3rem 0.6rem;font-size:0.72rem}
+  .nav-avatar{width:20px;height:20px;font-size:0.5rem}
+
+  /* ── MOBILE PROFILE BAR ── */
+  .mobile-profile-bar{display:flex}
+
+  /* sync bar compact — adjust top offset */
+  .sync-bar{padding:0.3rem 1rem;font-size:0.55rem}
+
+  /* ── LAYOUT — extra top padding for two-row navbar ── */
+  .app{padding:1.25rem 0.85rem 5.5rem}
+
+  /* ── PAGE HEADER ── */
+  .ph-user{font-size:1.3rem}
+  .page-header{margin-bottom:1.25rem}
+
+  /* ── STATS: 2 columns ── */
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+    gap:0.5rem;margin-bottom:1.25rem;
+  }
+  .stat{padding:0.65rem 0.75rem}
+  .stat-n{font-size:1.2rem}
+  .stat-l{font-size:0.52rem}
+
+  /* ── ADD FORM: collapsible ── */
+  .form-toggle-btn{display:block}
+  .add-section{margin-bottom:0}
+
+  .fg-2{grid-template-columns:1fr} /* stack inputs */
+  .fg-3{grid-template-columns:1fr}
+  .fg-3>:first-child{grid-column:span 1}
+  .rec-row{flex-direction:column;gap:0.4rem}
+  .recbtn{padding:0.65rem}
+
+  /* ── GAME CARDS: bigger touch targets ── */
+  .game-main{padding:0.85rem 0.9rem;gap:0.6rem}
+  .game-check{
+    width:36px;height:36px;flex-shrink:0;
+    border-width:2px;font-size:0.7rem;
+  }
+  .game-name{font-size:0.88rem}
+  .game-user-tag{display:none} /* save horizontal space */
+  .icon-btn{
+    width:36px;height:36px;font-size:0.85rem;
+  }
+  .game-actions{gap:4px}
+
+  /* ── CONSOLE HEADER ── */
+  .con-header{padding:0.75rem 0.9rem}
+
+  /* ── REVIEW PANEL ── */
+  .review-panel{padding:0.65rem 0.9rem 0.8rem 3rem}
+
+  /* ── MODAL ── */
+  .modal{
+    border-radius:var(--radlg) var(--radlg) 0 0;
+    position:fixed;bottom:0;left:0;right:0;
+    width:100%;max-height:88vh;
+    padding:1.25rem 1rem;
+  }
+  .modal-overlay{align-items:flex-end}
+
+  /* ── FILTER PILLS ── */
+  .filters{
+    gap:0.3rem;
+    flex-wrap:nowrap;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:2px;
+  }
+  .filters::-webkit-scrollbar{display:none}
+  .fpill{white-space:nowrap;flex-shrink:0}
+
+  /* ── BOTTOM NAV: visible ── */
+  .bottom-nav{display:block}
+  .fab{display:flex}
+
+  /* ── SWIPE HINT ── */
+  .swipe-hint{display:block}
+
+  /* ── PENDING BANNER ── */
+  .popup-card{padding:0.75rem 0.9rem}
+  .pending-banner-header{padding:0.7rem 0.9rem}
+
+  /* ── SECTION GAP ── */
+  .sections{gap:0.85rem}
+
+  /* ── PROFILE TABS (if visible) ── */
+  .profile-tabs{
+    overflow-x:auto;flex-wrap:nowrap;
+    scrollbar-width:none;
+  }
+  .profile-tabs::-webkit-scrollbar{display:none}
+  .ptab{flex-shrink:0}
 }
 </style>
 </head>
@@ -435,34 +750,48 @@ select option{background:#1c1c1c}
 
 <!-- ═══ NAVBAR ═══════════════════════════ -->
 <nav class="navbar">
-  <div class="nav-logo">PLAY<em>LIST</em></div>
-  <div class="nav-sep"></div>
-  <div class="nav-users">
-    <button class="nav-user active" id="nav-santi" onclick="switchProfile('Santi')">
-      <div class="nav-avatar santi">S</div>
-      Santi
-      <span class="nav-badge" id="nb-santi">0</span>
-    </button>
-    <button class="nav-user" id="nav-espi" onclick="switchProfile('Espi')">
-      <div class="nav-avatar espi">E</div>
-      Espi
-      <span class="nav-badge" id="nb-espi">0</span>
-    </button>
+  <!-- Row 1: Logo + Users -->
+  <div class="navbar-row1">
+    <div class="nav-logo">SAVE<em>POINT</em></div>
+    <div class="nav-sep"></div>
+    <div class="nav-users">
+      <button class="nav-user active" id="nav-santi" onclick="switchProfile('Santi')">
+        <div class="nav-avatar santi">S</div>
+        Santi
+        <span class="nav-badge" id="nb-santi">0</span>
+      </button>
+      <button class="nav-user" id="nav-espi" onclick="switchProfile('Espi')">
+        <div class="nav-avatar espi">E</div>
+        Espi
+        <span class="nav-badge" id="nb-espi">0</span>
+      </button>
+    </div>
+    <div class="nav-sep"></div>
+    <!-- Tabs: visible inline on desktop, hidden on mobile (moved to bottom nav) -->
+    <div class="nav-right">
+      <button class="nav-tab-pill active" id="navt-all" onclick="setNavTab('all',this)">Todos</button>
+      <button class="nav-tab-pill" id="navt-pending" onclick="setNavTab('pending',this)">Pendientes</button>
+      <button class="nav-tab-pill" id="navt-played" onclick="setNavTab('played',this)">Jugados</button>
+      <button class="nav-tab-pill" id="navt-recs" onclick="setNavTab('recs',this)">★ Recomendados</button>
+      <button class="nav-tab-pill" id="navt-add" onclick="setNavTab('add',this)">+ Agregar</button>
+    </div>
   </div>
-  <div class="nav-sep"></div>
-  <div class="nav-right">
-    <button class="nav-tab-pill active" id="navt-all" onclick="setNavTab('all',this)">Todos</button>
-    <button class="nav-tab-pill" id="navt-pending" onclick="setNavTab('pending',this)">Pendientes</button>
-    <button class="nav-tab-pill" id="navt-played" onclick="setNavTab('played',this)">Jugados</button>
-    <button class="nav-tab-pill" id="navt-recs" onclick="setNavTab('recs',this)">★ Recomendados</button>
-  </div>
+  <!-- Row 2: only used on mobile as extra space if needed (currently empty, kept for future use) -->
+  <div class="navbar-row2" id="navbar-row2" style="display:none"></div>
 </nav>
+
+<!-- MOBILE PROFILE BAR (sticky, below navbar) -->
+<div class="mobile-profile-bar" id="mobile-profile-bar">
+  <div class="mpb-avatar santi" id="mpb-avatar">S</div>
+  <span class="mpb-name" id="mpb-name">Santi</span>
+  <span class="mpb-tab" id="mpb-tab">Todos</span>
+</div>
 
 <!-- SYNC BAR -->
 <div class="sync-bar">
   <div class="sync-dot" id="sync-dot"></div>
   <span class="sync-txt" id="sync-txt">Cargando...</span>
-  <button class="sync-btn" onclick="syncNow()">↻ Sync</button>
+  <button class="sync-btn" id="sync-btn" onclick="syncNow()"><span class="sync-icon">↻</span> Sync</button>
 </div>
 
 <div class="app">
@@ -477,16 +806,44 @@ select option{background:#1c1c1c}
   </div>
 
   <!-- STATS -->
-  <div class="stats">
+  <div class="stats main-only">
     <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
     <div class="stat"><div class="stat-n" id="s-played">0</div><div class="stat-l">Jugados</div></div>
     <div class="stat"><div class="stat-n" id="s-pending">0</div><div class="stat-l">Pendientes</div></div>
     <div class="stat"><div class="stat-n gold" id="s-avg">—</div><div class="stat-l">Avg score</div></div>
   </div>
 
+  <!-- FAVORITES 3D CAROUSEL -->
+  <section class="fav-section main-only" id="fav-section">
+    <div class="fav-head">
+      <div>
+        <div class="fav-title">★ Favoritos del perfil</div>
+        <div class="fav-subtitle">marca juegos con ★ para crear tu vitrina personal</div>
+      </div>
+      <div class="fav-controls">
+        <button class="fav-nav" onclick="scrollFav(-1)" title="Anterior">‹</button>
+        <button class="fav-nav" onclick="scrollFav(1)" title="Siguiente">›</button>
+      </div>
+    </div>
+    <div class="fav-stage">
+      <div class="fav-track" id="fav-track"></div>
+    </div>
+  </section>
+
+  <!-- ADD FORM TOGGLE (mobile only) -->
+  <button class="form-toggle-btn" id="form-toggle-btn" onclick="toggleAddForm()">
+    + Agregar juego <span class="ftb-arrow">▼</span>
+  </button>
   <!-- ADD FORM -->
-  <div class="add-section" id="add-section">
-    <div class="form-label">— agregar juego</div>
+  <div class="add-section tabbed" id="add-section">
+    <div class="add-intro">
+      <div>
+        <div class="add-intro-title">Agregar nuevo juego</div>
+        <div class="add-intro-copy">Registra el título, su estado, prioridad, calificación, portada y si quieres recomendarlo al otro perfil.</div>
+      </div>
+      <button class="add-back" onclick="setNavTab('all')">Volver a biblioteca</button>
+    </div>
+    <div class="form-label">— datos del juego</div>
     <div class="fg fg-2">
       <input type="text" id="inp-name" placeholder="Nombre del juego..."/>
       <select id="inp-console">
@@ -562,8 +919,26 @@ select option{background:#1c1c1c}
         </div>
       </div>
     </div>
+    <div class="form-label" style="margin-top:.7rem;margin-bottom:.55rem">— estado gamer</div>
+    <div class="status-row">
+      <button class="statusbtn active" id="st-pending" onclick="setStatusOpt('pending')">Pendiente</button>
+      <button class="statusbtn" id="st-playing" onclick="setStatusOpt('playing')">Jugando</button>
+      <button class="statusbtn" id="st-finished" onclick="setStatusOpt('finished')">Terminado</button>
+      <button class="statusbtn" id="st-completed" onclick="setStatusOpt('completed')">100%</button>
+      <button class="statusbtn" id="st-dropped" onclick="setStatusOpt('dropped')">Abandonado</button>
+    </div>
+    <div class="priority-row">
+      <button class="prioritybtn" id="pr-low" onclick="setPriorityOpt('low')">Algún día</button>
+      <button class="prioritybtn active" id="pr-medium" onclick="setPriorityOpt('medium')">Normal</button>
+      <button class="prioritybtn" id="pr-high" onclick="setPriorityOpt('high')">Prioridad alta</button>
+    </div>
+    <button class="favoritebtn" id="fav-add" onclick="setFavOpt(!willFav)">☆ Agregar a favoritos</button>
+    <div class="fg fg-2">
+      <input type="number" id="inp-hours" min="0" step="0.5" placeholder="Horas jugadas..."/>
+      <input type="text" id="inp-cover" placeholder="URL de portada opcional..."/>
+    </div>
     <div class="fg" style="margin-bottom:0.6rem">
-      <textarea id="inp-review" rows="2" placeholder="Reseña o nota (opcional)..."></textarea>
+      <textarea id="inp-review" rows="2" placeholder="Reseña, mood, dificultad o nota personal..."></textarea>
     </div>
     <div class="rec-row">
       <button class="recbtn no active" id="recbtn-no" onclick="setRecOpt(false)">✕ No recomendar</button>
@@ -572,8 +947,11 @@ select option{background:#1c1c1c}
     <button class="btn-add" onclick="addGame()">+ Agregar a la lista</button>
   </div>
 
+  <!-- SWIPE HINT -->
+  <div class="swipe-hint" id="swipe-hint">← desliza para filtrar →</div>
+
   <!-- FILTERS -->
-  <div class="filters" id="console-filters">
+  <div class="filters main-only" id="console-filters">
     <button class="fpill active" onclick="setCFilter('all',this)">Todas</button>
     <button class="fpill" onclick="setCFilter('switch',this)">Switch</button>
     <button class="fpill" onclick="setCFilter('xbox',this)">Xbox</button>
@@ -581,8 +959,34 @@ select option{background:#1c1c1c}
     <button class="fpill" onclick="setCFilter('pc',this)">PC</button>
   </div>
 
+  <!-- DISCOVERY / POWER FILTERS -->
+  <div class="discovery-panel" id="discovery-panel">
+    <input class="search-input" type="text" id="search-q" placeholder="Buscar juego, género o reseña..." oninput="setSearch(this.value)"/>
+    <select id="status-filter" onchange="setStatusFilter(this.value)">
+      <option value="all">Todos los estados</option>
+      <option value="pending">Pendiente</option>
+      <option value="playing">Jugando</option>
+      <option value="finished">Terminado</option>
+      <option value="completed">100% / Platinado</option>
+      <option value="dropped">Abandonado</option>
+      <option value="replaying">Rejugando</option>
+    </select>
+    <select id="priority-filter" onchange="setPriorityFilter(this.value)">
+      <option value="all">Toda prioridad</option>
+      <option value="high">Prioridad alta</option>
+      <option value="medium">Normal</option>
+      <option value="low">Algún día</option>
+    </select>
+    <select id="sort-mode" onchange="setSortMode(this.value)">
+      <option value="recent">Más recientes</option>
+      <option value="az">A–Z</option>
+      <option value="rating">Mejor rating</option>
+      <option value="hours">Más horas</option>
+    </select>
+  </div>
+
   <!-- SECTIONS -->
-  <div id="sections" class="sections"></div>
+  <div id="sections" class="sections main-only"></div>
 </div>
 
 <!-- EDIT MODAL -->
@@ -667,6 +1071,26 @@ select option{background:#1c1c1c}
         </div>
       </div>
     </div>
+    <div class="fg fg-2" style="margin-bottom:0.6rem">
+      <select id="edit-status">
+        <option value="pending">Pendiente</option>
+        <option value="playing">Jugando</option>
+        <option value="finished">Terminado</option>
+        <option value="completed">100% / Platinado</option>
+        <option value="dropped">Abandonado</option>
+        <option value="replaying">Rejugando</option>
+      </select>
+      <select id="edit-priority">
+        <option value="low">Algún día</option>
+        <option value="medium">Normal</option>
+        <option value="high">Prioridad alta</option>
+      </select>
+    </div>
+    <div class="fg fg-2" style="margin-bottom:0.6rem">
+      <input type="number" id="edit-hours" min="0" step="0.5" placeholder="Horas jugadas..."/>
+      <input type="text" id="edit-cover" placeholder="URL de portada..."/>
+    </div>
+    <button class="favoritebtn" id="fav-edit" onclick="setEditFavOpt(!editFav)">☆ Marcar como favorito</button>
     <div class="fg" style="margin-bottom:1rem">
       <textarea id="edit-review" rows="3" placeholder="Reseña o nota..."></textarea>
     </div>
@@ -677,6 +1101,32 @@ select option{background:#1c1c1c}
   </div>
 </div>
 
+<!-- ═══ BOTTOM NAV (mobile) ══════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnavt-all" onclick="setNavTab('all',this,'bnav')">
+      <span class="bnav-icon">◈</span>Todos
+    </button>
+    <button class="bnav-btn" id="bnavt-pending" onclick="setNavTab('pending',this,'bnav')">
+      <span class="bnav-icon">○</span>Pendientes
+    </button>
+    <button class="bnav-btn" id="bnavt-played" onclick="setNavTab('played',this,'bnav')">
+      <span class="bnav-icon">✓</span>Jugados
+    </button>
+    <button class="bnav-btn" id="bnavt-recs" onclick="setNavTab('recs',this,'bnav')">
+      <span class="bnav-icon">★</span>Recs
+      <span class="bnav-dot" id="bnav-recs-dot"></span>
+    </button>
+    <button class="bnav-btn" id="bnavt-add" onclick="setNavTab('add',this,'bnav')">
+      <span class="bnav-icon">＋</span>Agregar
+    </button>
+  </div>
+</nav>
+
+<!-- FAB -->
+<button class="fab" id="fab-add" onclick="setNavTab('add')" title="Agregar juego">+</button>
+
+
 <script>
 const CONSOLES=[
   {id:'switch',name:'Nintendo Switch',color:'var(--switch)'},
@@ -684,9 +1134,19 @@ const CONSOLES=[
   {id:'ps',    name:'PlayStation',    color:'var(--ps)'},
   {id:'pc',    name:'PC / Steam',     color:'var(--pc)'},
 ];
-// ── JSONBIN CONFIG ── Pega tus credenciales aquí ──
-const JSONBIN_ID  = '6a20ef26f5f4af5e29b5cda1';
-const JSONBIN_KEY = '$2a$10$zT8Ks4O5QcMAKKXNOFaiKeVNQBwX4BKVgZ8.FxL2p8.RP7h4yF3vy';
+// ── JSONBIN CONFIG ──────────────────────────────────────────────────
+// JSONBIN_KEY  → tu Master Key  (para PUT/writes desde server, o si tu bin es privado)
+// JSONBIN_ACCESS → tu Access Key (para GET/writes desde browser – va en X-Access-Key)
+// Si tu bin es PÚBLICO puedes dejar JSONBIN_ACCESS vacío y el GET funciona sin header.
+// Para el PUT (guardar) siempre se necesita el Master Key o Access Key con permiso write.
+const JSONBIN_ID     = '6a20ef26f5f4af5e29b5cda1'; // opcional: pega aquí tu Bin ID si conectas backend/servicio seguro
+const JSONBIN_KEY    = '$2a$10$zT8Ks4O5QcMAKKXNOFaiKeVNQBwX4BKVgZ8.FxL2p8.RP7h4yF3vy'; // NO subas claves reales en GitHub. Usa backend o variables de entorno.
+const JSONBIN_ACCESS = '$2a$10$g6oiVm2/pTG59Bg6TP22feVtrUv5JYzRbiLAc28bWC/3dJOZtq8G6'; // opcional si usas un servicio público/controlado
+
+function jsonbinHeaders(write=false){
+  // Para bins privados: X-Master-Key funciona tanto en GET como PUT desde browser
+  const h={'Content-Type':'application/json'}; if(JSONBIN_KEY)h['X-Master-Key']=JSONBIN_KEY; if(JSONBIN_ACCESS)h['X-Access-Key']=JSONBIN_ACCESS; return h;
+}
 
 let games=[];
 let pending=[];
@@ -698,23 +1158,46 @@ let rType='stars',rVal=0;
 let eRType='stars',eRVal=0;
 let editingId=null;
 let willRec=false;
+let willFav=false;
+let editFav=false;
+let gameStatus='pending', gamePriority='medium';
+let searchQ='', statusFilter='all', priorityFilter='all', sortMode='recent';
 let lastHash='';
 let pollTimer=null;
 
 /* ── SYNC (JSONBin) ── */
 function hashStr(d){const s=JSON.stringify(d);let h=0;for(let i=0;i<s.length;i++){h=(Math.imul(31,h)+s.charCodeAt(i))|0}return h.toString(36)}
-function setSyncUI(st,msg){const dot=document.getElementById('sync-dot');const txt=document.getElementById('sync-txt');if(dot)dot.className='sync-dot '+st;if(txt)txt.textContent=msg}
+function setSyncUI(st,msg){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-txt');
+  const btn=document.getElementById('sync-btn');
+  if(dot)dot.className='sync-dot '+st;
+  if(txt)txt.textContent=msg;
+  if(btn)btn.classList.toggle('spinning',st==='syncing');
+}
+function updateMobileProfileBar(){
+  const avatar=document.getElementById('mpb-avatar');
+  const name=document.getElementById('mpb-name');
+  const tab=document.getElementById('mpb-tab');
+  if(!avatar)return;
+  avatar.className='mpb-avatar '+(curProfile==='Santi'?'santi':'espi');
+  avatar.textContent=curProfile[0];
+  if(name)name.textContent=curProfile;
+  const tabLabels={all:'Todos',pending:'Pendientes',played:'Jugados',recs:'Recomendados',add:'Agregar'};
+  if(tab)tab.textContent=tabLabels[curNavTab]||'Todos';
+}
 function timeNow(){return new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}
 
 async function saveAll(){
   setSyncUI('syncing','Guardando...');
   try{
+    if(!JSONBIN_ID){localStorage.setItem('savepoint-data',JSON.stringify({games,pending}));lastHash=hashStr({games,pending});setSyncUI('ok','Guardado local · '+timeNow());return}
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`,{
       method:'PUT',
-      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},
+      headers:jsonbinHeaders(true),
       body:JSON.stringify({games,pending})
     });
-    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t)}
+    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,120))}
     lastHash=hashStr({games,pending});
     setSyncUI('ok','Guardado · '+timeNow());
   }catch(e){console.error('saveAll',e);setSyncUI('err','Error al guardar: '+e.message)}
@@ -723,20 +1206,18 @@ async function saveAll(){
 async function loadAll(){
   setSyncUI('syncing','Sincronizando...');
   try{
+    if(!JSONBIN_ID){const raw=localStorage.getItem('savepoint-data');const d=raw?JSON.parse(raw):{games:[],pending:[]};games=d.games||[];pending=d.pending||[];lastHash=hashStr({games,pending});setSyncUI('ok','Modo local · '+timeNow());render();return}
     const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-      headers:{'X-Master-Key':JSONBIN_KEY}
+      headers:jsonbinHeaders(false)
     });
-    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t)}
+    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,120))}
     const wrapper=await r.json();
-    // JSONBin wraps response: {record:{...}, metadata:{...}}
-    // With X-Bin-Meta:false it returns the record directly
-    // But sometimes it still wraps — handle both cases
     const d=wrapper.record||wrapper;
     games=Array.isArray(d)?[]:(d.games||[]);
     pending=Array.isArray(d)?[]:(d.pending||[]);
     lastHash=hashStr({games,pending});
     setSyncUI('ok','Sincronizado · '+timeNow());
-  }catch(e){console.error('loadAll',e);setSyncUI('err','Error: '+e.message);games=[];pending=[]}
+  }catch(e){console.error('loadAll Error:',e);setSyncUI('err','Error sync: '+e.message);games=[];pending=[]}
   render();
 }
 
@@ -744,10 +1225,11 @@ async function syncNow(){await loadAll()}
 
 function startPolling(){
   clearInterval(pollTimer);
+  if(!JSONBIN_ID)return;
   pollTimer=setInterval(async()=>{
     try{
       const r=await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,{
-        headers:{'X-Master-Key':JSONBIN_KEY}
+        headers:jsonbinHeaders(false)
       });
       if(!r.ok)return;
       const wrapper=await r.json();
@@ -816,21 +1298,129 @@ function setRecOpt(val){
   document.getElementById('recbtn-yes').classList.toggle('active',val);
   document.getElementById('recbtn-no').classList.toggle('active',!val);
 }
+function setFavOpt(val){
+  willFav=val;
+  const btn=document.getElementById('fav-add');
+  if(btn){btn.classList.toggle('active',val);btn.textContent=val?'★ En favoritos':'☆ Agregar a favoritos'}
+}
+function setEditFavOpt(val){
+  editFav=val;
+  const btn=document.getElementById('fav-edit');
+  if(btn){btn.classList.toggle('active',val);btn.textContent=val?'★ En favoritos':'☆ Marcar como favorito'}
+}
+
+function setStatusOpt(val){
+  gameStatus=val;
+  document.querySelectorAll('.statusbtn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('st-'+val);if(el)el.classList.add('active');
+}
+function setPriorityOpt(val){
+  gamePriority=val;
+  document.querySelectorAll('.prioritybtn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('pr-'+val);if(el)el.classList.add('active');
+}
+function setSearch(v){searchQ=(v||'').toLowerCase().trim();render()}
+function setStatusFilter(v){statusFilter=v;render()}
+function setPriorityFilter(v){priorityFilter=v;render()}
+function setSortMode(v){sortMode=v;render()}
+function getStatus(g){return g.status || (g.played?'finished':'pending')}
+function isPlayedStatus(st){return ['finished','completed'].includes(st)}
+function statusLabel(st){return {pending:'Pendiente',playing:'Jugando',finished:'Terminado',completed:'100%',dropped:'Abandonado',replaying:'Rejugando'}[st]||'Pendiente'}
+function priorityLabel(pr){return {low:'Algún día',medium:'Normal',high:'Alta prioridad'}[pr||'medium']||'Normal'}
+function coverMarkup(g){
+  if(g.cover){return `<div class="game-cover"><img src="${esc(g.cover)}" alt="Portada de ${esc(g.name)}" onerror="this.parentNode.textContent='NO ART'"></div>`}
+  const initials=String(g.name||'?').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+  return `<div class="game-cover">${esc(initials)}</div>`;
+}
+function cycleStatus(id){
+  const order=['pending','playing','finished','completed','replaying','dropped'];
+  const g=games.find(x=>x.id===id);if(!g)return;
+  const i=order.indexOf(getStatus(g));
+  g.status=order[(i+1)%order.length];
+  g.played=isPlayedStatus(g.status);
+  saveAll();render();
+}
 
 /* ── USER / PROFILE ── */
 function switchProfile(p){
   curProfile=p;curNavTab='all';cFilter='all';
   document.getElementById('nav-santi').classList.toggle('active',p==='Santi');
   document.getElementById('nav-espi').classList.toggle('active',p==='Espi');
-  ['all','pending','played','recs'].forEach(t=>document.getElementById('navt-'+t).classList.toggle('active',t==='all'));
+  ['all','pending','played','recs','add'].forEach(t=>{
+    const top=document.getElementById('navt-'+t);if(top)top.classList.toggle('active',t==='all');
+    const bot=document.getElementById('bnavt-'+t);if(bot)bot.classList.toggle('active',t==='all');
+  });
   document.querySelectorAll('.fpill').forEach((b,i)=>b.classList.toggle('active',i===0));
-  render();
+  render();updateMobileProfileBar();
 }
-function setNavTab(t,el){
+function setNavTab(t,el,source){
   curNavTab=t;
   document.querySelectorAll('.nav-tab-pill').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');render();
+  const topPill=document.getElementById('navt-'+t);
+  if(topPill)topPill.classList.add('active');
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const bnavBtn=document.getElementById('bnavt-'+t);
+  if(bnavBtn)bnavBtn.classList.add('active');
+  updateMobileProfileBar();
+  render();
+  if(t==='add'){
+    setTimeout(()=>{const inp=document.getElementById('inp-name');if(inp)inp.focus()},120);
+  }
 }
+
+/* ── FORM TOGGLE (mobile) ── */
+let formOpen=false;
+function toggleAddForm(forceOpen){
+  const section=document.getElementById('add-section');
+  const btn=document.getElementById('form-toggle-btn');
+  const fab=document.getElementById('fab-add');
+  if(forceOpen===true){formOpen=false} // force open
+  formOpen=!formOpen;
+  section.classList.toggle('collapsed',!formOpen);
+  if(btn){btn.classList.toggle('open',formOpen);btn.querySelector('.ftb-arrow').textContent=formOpen?'▲':'▼';}
+  if(fab)fab.style.display=formOpen?'none':'flex';
+  if(formOpen){
+    setTimeout(()=>{
+      const inp=document.getElementById('inp-name');
+      if(inp)inp.focus();
+    },150);
+  }
+}
+
+/* ── INIT MOBILE FORM STATE ── */
+function initMobileForm(){
+  const section=document.getElementById('add-section');
+  const fab=document.getElementById('fab-add');
+  if(section)section.classList.remove('collapsed');
+  if(fab)fab.style.display=curNavTab==='add'?'none':'flex';
+}
+
+/* ── PWA INSTALL ── */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  setTimeout(()=>{
+    const toast=document.getElementById('pwa-toast');
+    if(toast&&!localStorage.getItem('pwa-dismissed'))toast.classList.add('show');
+  },3000);
+});
+function dismissPWA(){
+  const toast=document.getElementById('pwa-toast');
+  if(toast)toast.classList.remove('show');
+  localStorage.setItem('pwa-dismissed','1');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const installBtn=document.getElementById('pwa-install-btn');
+  if(installBtn){
+    installBtn.addEventListener('click',async()=>{
+      if(!deferredPrompt)return;
+      deferredPrompt.prompt();
+      const{outcome}=await deferredPrompt.userChoice;
+      deferredPrompt=null;
+      dismissPWA();
+    });
+  }
+});
 function setCFilter(f,el){
   cFilter=f;
   document.querySelectorAll('.fpill').forEach(b=>b.classList.remove('active'));
@@ -845,10 +1435,14 @@ function addGame(){
     id:Date.now(),name,
     console:document.getElementById('inp-console').value,
     genre:document.getElementById('inp-genre').value,
-    user:curProfile,played:false,
+    user:curProfile,played:isPlayedStatus(gameStatus),
+    status:gameStatus, priority:gamePriority,
+    hours:parseFloat(document.getElementById('inp-hours').value)||0,
+    cover:document.getElementById('inp-cover').value.trim(),
     rating:getRVal(),ratingType:rType,
     review:document.getElementById('inp-review').value.trim(),
     recommendedBy:null,
+    favorite:willFav,
   };
   games.push(newGame);
 
@@ -867,8 +1461,12 @@ function addGame(){
   }
 
   saveAll();
+  setNavTab('all');
   document.getElementById('inp-name').value='';
   document.getElementById('inp-review').value='';
+  document.getElementById('inp-hours').value='';
+  document.getElementById('inp-cover').value='';
+  setStatusOpt('pending');setPriorityOpt('medium');setFavOpt(false);
   rVal=0;buildStarDisplay('sd-add',0);updateStarLabel('sl-add',0);
   document.getElementById('inp-num').value='';
   willRec=false;
@@ -889,10 +1487,11 @@ function acceptRec(pendingId){
     console:p.console,
     genre:p.genre,
     user:p.toUser,
-    played:false,
+    played:false,status:'pending',priority:'high',hours:0,cover:'',
     rating:null,ratingType:'none',
     review:'',
     recommendedBy:p.fromUser,
+    favorite:false,
   });
   pending=pending.filter(x=>x.id!==pendingId);
   saveAll();render();
@@ -904,7 +1503,9 @@ function declineRec(pendingId){
 }
 
 /* ── TOGGLE PLAYED ── */
-function togglePlayed(id){const g=games.find(x=>x.id===id);if(g){g.played=!g.played;saveAll();render()}}
+function togglePlayed(id){cycleStatus(id)}
+
+function toggleFavorite(id){const g=games.find(x=>x.id===id);if(g){g.favorite=!g.favorite;saveAll();render()}}
 
 /* ── DELETE ── */
 function delGame(id){if(!confirm('¿Borrar este juego?'))return;games=games.filter(x=>x.id!==id);saveAll();render()}
@@ -920,6 +1521,11 @@ function openEdit(id){
   document.getElementById('edit-console').value=g.console;
   document.getElementById('edit-genre').value=g.genre||'';
   document.getElementById('edit-review').value=g.review||'';
+  document.getElementById('edit-status').value=getStatus(g);
+  document.getElementById('edit-priority').value=g.priority||'medium';
+  document.getElementById('edit-hours').value=g.hours||'';
+  document.getElementById('edit-cover').value=g.cover||'';
+  setEditFavOpt(!!g.favorite);
   eRType=g.ratingType||'none';setERType(eRType);
   if(eRType==='stars'&&g.rating){eRVal=g.rating;buildStarDisplay('sd-edit',eRVal);updateStarLabel('sl-edit',eRVal);}
   else{eRVal=0;buildStarDisplay('sd-edit',0);updateStarLabel('sl-edit',0)}
@@ -933,28 +1539,122 @@ function saveEdit(){
   g.console=document.getElementById('edit-console').value;
   g.genre=document.getElementById('edit-genre').value;
   g.review=document.getElementById('edit-review').value.trim();
+  g.status=document.getElementById('edit-status').value;
+  g.played=isPlayedStatus(g.status);
+  g.priority=document.getElementById('edit-priority').value;
+  g.hours=parseFloat(document.getElementById('edit-hours').value)||0;
+  g.cover=document.getElementById('edit-cover').value.trim();
   g.ratingType=eRType;g.rating=getERVal();
+  g.favorite=editFav;
   saveAll();closeModal();render();
+}
+
+
+function normalizedRating(g){
+  if(g.rating==null)return null;
+  const n=g.ratingType==='stars'?g.rating*2:g.rating;
+  return Math.max(0,Math.min(10,Number(n)||0));
+}
+function frameTier(g){
+  const n=normalizedRating(g);
+  if(n==null)return 'tier-none';
+  if(n>=10)return 'tier-gold';
+  if(n>=8)return 'tier-silver';
+  if(n>=6)return 'tier-bronze';
+  return 'tier-none';
+}
+function starFloat(g){
+  const n=normalizedRating(g);
+  if(n==null||n<=0)return '';
+  const count=Math.max(1,Math.round(n/2));
+  return '★'.repeat(Math.min(5,count));
+}
+function coverMarkup(g,cls='game-cover'){
+  const initials=esc((g.name||'?').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase());
+  if(g.cover)return `<div class="${cls}"><img src="${esc(g.cover)}" alt="${esc(g.name)}" onerror="this.remove();this.parentElement.textContent='${initials}'"></div>`;
+  return `<div class="${cls}">${initials}</div>`;
+}
+function scrollFav(dir){
+  const track=document.getElementById('fav-track');if(!track)return;
+  track.scrollBy({left:dir*210,behavior:'smooth'});
+}
+function renderFavoriteCarousel(){
+  const track=document.getElementById('fav-track');if(!track)return;
+  const favs=games.filter(g=>g.user===curProfile&&g.favorite);
+  if(!favs.length){
+    track.innerHTML='<div class="fav-empty">— todavía no hay favoritos. Marca un juego con ★ para crear el carrusel —</div>';return;
+  }
+  favs.sort((a,b)=>((normalizedRating(b)||0)-(normalizedRating(a)||0))||((b.id||0)-(a.id||0)));
+  track.innerHTML=favs.map(g=>{
+    const con=CONSOLES.find(c=>c.id===g.console)||CONSOLES[0];
+    const rd=ratingDisplay(g)||'Sin nota';
+    const stars=starsMarkup(g,true);
+    return `<article class="fav-card ${frameTier(g)}" ondblclick="toggleFavorite(${g.id})">
+      <div class="fav-poster">${g.cover?`<img src="${esc(g.cover)}" alt="${esc(g.name)}" onerror="this.remove()">`:esc(g.name)}</div>
+      <div class="fav-shade"></div>
+      <div class="fav-badge">${rd}</div>
+      <button class="fav-unstar" onclick="toggleFavorite(${g.id})" title="Quitar de favoritos">★</button>
+      <div class="fav-info">
+        <div class="fav-name">${esc(g.name)}</div>
+        ${stars?`<div class="fav-stars" aria-label="Calificación: ${rd}">${stars}</div>`:''}
+        <div class="fav-meta">${con.name}${g.genre?' · '+esc(g.genre):''}<br>${statusLabel(getStatus(g))}${g.hours?' · '+g.hours+'h':''}</div>
+      </div>
+    </article>`
+  }).join('');
+}
+
+
+function updateTabVisibility(){
+  const isAdd=curNavTab==='add';
+  document.querySelectorAll('.main-only').forEach(el=>el.classList.toggle('hidden',isAdd));
+  const add=document.getElementById('add-section');
+  if(add)add.classList.toggle('open',isAdd);
+  const fab=document.getElementById('fab-add');
+  if(fab)fab.style.display=isAdd?'none':'flex';
+}
+function starsMarkup(g, includeEmpty=false){
+  const n=normalizedRating(g);
+  if(n==null||n<=0)return '';
+  const val=(g.ratingType==='stars')?Number(g.rating):Number(g.rating)/2;
+  let html='';
+  for(let i=1;i<=5;i++){
+    if(val>=i)html+='<span>★</span>';
+    else if(val>=i-.5)html+='<span class="half-star">★</span>';
+    else if(includeEmpty)html+='<span class="empty-star">★</span>';
+  }
+  return html;
 }
 
 /* ── RENDER ── */
 function render(){
-  updateNavBadges();updatePageHeader();updateStats();
+  updateNavBadges();updatePageHeader();updateTabVisibility();
+  if(curNavTab==='add'){return}
+  updateStats();renderFavoriteCarousel();
 
   const sections=document.getElementById('sections');
   const filtersEl=document.getElementById('console-filters');
+  const discoveryEl=document.getElementById('discovery-panel');
   sections.innerHTML='';
 
   if(curNavTab==='recs'){
-    filtersEl.style.display='none';
+    filtersEl.style.display='none'; if(discoveryEl)discoveryEl.style.display='none';
     renderRecs(sections);return;
   }
-  filtersEl.style.display='flex';
+  filtersEl.style.display='flex'; if(discoveryEl)discoveryEl.style.display='grid';
 
   let list=games.filter(g=>g.user===curProfile);
-  if(curNavTab==='pending')list=list.filter(g=>!g.played);
-  if(curNavTab==='played') list=list.filter(g=> g.played);
+  if(curNavTab==='pending')list=list.filter(g=>['pending','playing','replaying'].includes(getStatus(g)));
+  if(curNavTab==='played') list=list.filter(g=>['finished','completed'].includes(getStatus(g)));
   if(['switch','xbox','ps','pc'].includes(cFilter))list=list.filter(g=>g.console===cFilter);
+  if(statusFilter!=='all')list=list.filter(g=>getStatus(g)===statusFilter);
+  if(priorityFilter!=='all')list=list.filter(g=>(g.priority||'medium')===priorityFilter);
+  if(searchQ){list=list.filter(g=>[g.name,g.genre,g.review,statusLabel(getStatus(g)),priorityLabel(g.priority)].join(' ').toLowerCase().includes(searchQ))}
+  list.sort((a,b)=>{
+    if(sortMode==='az')return a.name.localeCompare(b.name,'es');
+    if(sortMode==='rating')return ((b.ratingType==='stars'?b.rating*2:b.rating)||0)-((a.ratingType==='stars'?a.rating*2:a.rating)||0);
+    if(sortMode==='hours')return (b.hours||0)-(a.hours||0);
+    return (b.id||0)-(a.id||0);
+  });
 
   let hasAny=false;
   CONSOLES.forEach(con=>{
@@ -982,18 +1682,22 @@ function render(){
       const card=document.createElement('div');card.className='game-card';
       card.innerHTML=`
         <div class="game-main">
-          <button class="game-check ${g.played?'done':''}" style="--c:${con.color}" onclick="togglePlayed(${g.id})">${g.played?'✓':''}</button>
+          <button class="game-check ${getStatus(g)}" style="--c:${con.color}" onclick="togglePlayed(${g.id})" title="Cambiar estado"></button>
+          ${coverMarkup(g)}
           <div class="game-info">
-            <div class="game-name ${g.played?'done':''}">${esc(g.name)}</div>
+            <div class="game-name ${isPlayedStatus(getStatus(g))?'done':''}">${esc(g.name)}</div>
             <div class="game-tags">
-              ${g.genre?`<span class="tag">${g.genre}</span>`:''}
+              <span class="status-chip ${getStatus(g)}">${statusLabel(getStatus(g))}</span>
+              ${g.priority?`<span class="priority-chip ${g.priority}">${priorityLabel(g.priority)}</span>`:''}
+              ${g.genre?`<span class="tag">${esc(g.genre)}</span>`:''}
               ${rd?`<span class="tag gold">${rd}</span>`:''}
+              ${g.hours?`<span class="tag">${g.hours}h</span>`:''}
               ${g.recommendedBy?`<span class="rec-by-tag">★ rec. por ${g.recommendedBy}</span>`:''}
               ${hasRev?`<span class="tag review" onclick="toggleReview(${g.id})">📝 reseña</span>`:''}
             </div>
           </div>
-          <div class="game-user-tag">${g.user}</div>
           <div class="game-actions">
+            <button class="icon-btn fav-btn ${g.favorite?'active':''}" onclick="toggleFavorite(${g.id})" title="Favorito">★</button>
             <button class="icon-btn edit-btn" onclick="openEdit(${g.id})" title="Editar">✎</button>
             <button class="icon-btn del-btn" onclick="delGame(${g.id})" title="Borrar">✕</button>
           </div>
@@ -1070,7 +1774,7 @@ function toggleCol(cid){const key=curProfile+'_'+cid;collapsed[key]=!collapsed[k
 function updateNavBadges(){
   document.getElementById('nb-santi').textContent=games.filter(g=>g.user==='Santi').length;
   document.getElementById('nb-espi').textContent=games.filter(g=>g.user==='Espi').length;
-  // Add pending badge to recs tab
+  // Add pending badge to recs tab (top)
   const recsBtn=document.getElementById('navt-recs');
   const myPending=pending.filter(p=>p.toUser===curProfile);
   const existing=recsBtn.querySelector('.pending-count-badge');
@@ -1082,18 +1786,21 @@ function updateNavBadges(){
     badge.textContent=myPending.length;
     recsBtn.appendChild(badge);
   }
+  // bottom nav dot
+  const bnavDot=document.getElementById('bnav-recs-dot');
+  if(bnavDot)bnavDot.classList.toggle('show',myPending.length>0);
 }
 
 function updatePageHeader(){
-  const labels={all:'todos los juegos',pending:'por jugar',played:'jugados',recs:'recomendados'};
-  document.getElementById('ph-name').innerHTML=`Lista de <span>${curProfile}</span>`;
+  const labels={all:'todos los juegos',pending:'por jugar',played:'jugados',recs:'recomendados',add:'nuevo registro'};
+  document.getElementById('ph-name').innerHTML=curNavTab==='add'?`Agregar juego a <span>${curProfile}</span>`:`Lista de <span>${curProfile}</span>`;
   document.getElementById('ph-sub').textContent=labels[curNavTab]||'';
 }
 function updateStats(){
   const list=games.filter(g=>g.user===curProfile);
   document.getElementById('s-total').textContent=list.length;
-  document.getElementById('s-played').textContent=list.filter(g=>g.played).length;
-  document.getElementById('s-pending').textContent=list.filter(g=>!g.played).length;
+  document.getElementById('s-played').textContent=list.filter(g=>isPlayedStatus(getStatus(g))).length;
+  document.getElementById('s-pending').textContent=list.filter(g=>!isPlayedStatus(getStatus(g))).length;
   const rated=list.filter(g=>g.rating!=null);
   if(rated.length){
     const avg=rated.reduce((a,g)=>a+(g.ratingType==='stars'?g.rating*2:g.rating),0)/rated.length;
@@ -1102,12 +1809,46 @@ function updateStats(){
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
+let favDrag={active:false,startX:0,scrollLeft:0};
+document.addEventListener('pointerdown',e=>{
+  const track=e.target.closest&&e.target.closest('#fav-track');
+  if(!track)return;
+  favDrag={active:true,startX:e.clientX,scrollLeft:track.scrollLeft};
+  track.setPointerCapture&&track.setPointerCapture(e.pointerId);
+});
+document.addEventListener('pointermove',e=>{
+  if(!favDrag.active)return;
+  const track=document.getElementById('fav-track');if(!track)return;
+  track.scrollLeft=favDrag.scrollLeft-(e.clientX-favDrag.startX);
+});
+document.addEventListener('pointerup',()=>{favDrag.active=false});
+
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeModal();
   if(e.key==='Enter'&&document.activeElement===document.getElementById('inp-name'))addGame();
 });
 
-initStars();loadAll();startPolling();
+document.addEventListener('DOMContentLoaded',()=>{
+  const installBtn=document.getElementById('pwa-install-btn');
+  if(installBtn){
+    installBtn.addEventListener('click',async()=>{
+      if(!deferredPrompt)return;
+      deferredPrompt.prompt();
+      const{outcome}=await deferredPrompt.userChoice;
+      deferredPrompt=null;dismissPWA();
+    });
+  }
+});
+
+window.addEventListener('resize',initMobileForm);
+initStars();initMobileForm();updateMobileProfileBar();
+
+if(location.protocol==='file:'){
+  setSyncUI('err','⚠ Abre desde GitHub Pages, no como archivo local');
+  render();
+}else{
+  loadAll();startPolling();
+}
 </script>
 </body>
 </html>
